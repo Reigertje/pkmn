@@ -59,9 +59,6 @@ class GuessActivity : AppCompatActivity() {
         setLoadingMode()
         val pokemon_id = random.nextInt(currentMax) + 1
 
-        System.out.println(currentMax)
-        System.out.println(pokemon_id)
-
         PokemonService(this).loadPokemon(pokemon_id) { result, success ->
             if (success) {
                 startPokemonGuess(result)
@@ -124,7 +121,7 @@ class GuessActivity : AppCompatActivity() {
         try {
             Glide.with(this).load(pokemon.image).into(image)
         } catch (e:IllegalStateException) {
-            // TODO
+            // TO
         }
     }
  

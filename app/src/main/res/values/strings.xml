@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Guess The Pokemon</string>
+    <string name="title_activity_pokemon">PokemonActivity</string>
+
+    <string name="get_pokemon_count_failure">Failed to get number of Pokémon from API</string>
+    <string name="get_pokemon_failure">Failed to get Pokémon data from API</string>
+    <string name="invalid_pokemon_count">Invalid Pokémon count</string>
+
+    <string name="start_game">Start game</string>
+    <string name="pokemon_count_message">Number of Pokémon : %1$d</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="whos_that_pokemon">Who\'s that Pokémon?</string>
+
+    <string name="pokemon_answer_corrent">Correct!</string>
+    <string name="pokemon_answer_wrong">Wrong! It\'s %1$s</string>
+    <string name="next">Next</string>
+</resources>

@@ -127,8 +127,8 @@ class GuessActivity : AppCompatActivity() {
  
     private fun submitAnswer() {
         currentPokemon?.let { pokemon ->
-            val answer:String = answerEditText.text?.toString()?.trim()?:""
-            if (answer.equals(pokemon.name)) {
+            val answer:String = answerEditText.text?.toString()?.trim()?.toLowerCase()?:""
+            if (answer.equals(pokemon.name.toLowerCase())) {
                 currentMax = Math.min(currentMax + 50, maxPokemonId)
                 toast(R.string.pokemon_answer_corrent)
             } else {

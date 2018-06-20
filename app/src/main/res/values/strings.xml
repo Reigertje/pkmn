@@ -14,4 +14,6 @@
     <string name="pokemon_answer_corrent">Correct!</string>
     <string name="pokemon_answer_wrong">Wrong! It\'s %1$s</string>
     <string name="next">Next</string>
+
+    <string name="caught_em_all">Congratulation! You caught \'em all!</string>
 </resources>

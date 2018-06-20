@@ -14,16 +14,18 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import org.jetbrains.anko.image
 import org.jetbrains.anko.sdk25.coroutines.onClick
+import kotlin.collections.ArrayList
 
 class GuessActivity : AppCompatActivity() {
 
     private val INCREMENT = 15
-
-    private val random = Random()
+    private val START = 25
 
     private var currentMax:Int = 0
     private var maxPokemonId:Int = 0
     private var currentPokemon:Pokemon? = null
+
+    private val selectionList = ArrayList<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +36,8 @@ class GuessActivity : AppCompatActivity() {
         initializeButtonListener()
 
         if (maxPokemonId > 0) {
-            currentMax = maxPokemonId/8
+            currentMax = START
+            selectionList.addAll(1..currentMax)
             loadRandomPokemon()
         } else {
             toast(R.string.invalid_pokemon_count)
@@ -58,16 +61,22 @@ class GuessActivity : AppCompatActivity() {
     }
 
     private fun loadRandomPokemon() {
-        setLoadingMode()
-        val pokemon_id = random.nextInt(currentMax) + 1
+        if (selectionList.isNotEmpty()) {
+            Collections.shuffle(selectionList)
+            setLoadingMode()
+            val pokemon_id = selectionList.get(0)
 
-        PokemonService(this).loadPokemon(pokemon_id) { result, success ->
-            if (success) {
-                startPokemonGuess(result)
-            } else {
-                toast(R.string.get_pokemon_failure)
-                finish()
+            PokemonService(this).loadPokemon(pokemon_id) { result, success ->
+                if (success) {
+                    startPokemonGuess(result)
+                } else {
+                    toast(R.string.get_pokemon_failure)
+                    finish()
+                }
             }
+        } else {
+            toast(R.string.caught_em_all)
+            finish()
         }
     }
 
@@ -123,16 +132,25 @@ class GuessActivity : AppCompatActivity() {
         try {
             Glide.with(this).load(pokemon.image).into(image)
         } catch (e:IllegalStateException) {
-            // TO
+            // TODO handle this
         }
     }
- 
+
+    private fun increaseDifficulty() {
+        val newCurrentMax = Math.min(currentMax + INCREMENT, maxPokemonId)
+        if (newCurrentMax > currentMax) {
+            selectionList.addAll(currentMax + 1..newCurrentMax)
+            currentMax = newCurrentMax
+        }
+    }
+
     private fun submitAnswer() {
         currentPokemon?.let { pokemon ->
             val answer:String = answerEditText.text?.toString()?.trim()?.toLowerCase()?:""
             if (answer.equals(pokemon.name.toLowerCase())) {
-                currentMax = Math.min(currentMax + INCREMENT, maxPokemonId)
                 toast(R.string.pokemon_answer_corrent)
+                selectionList.removeAt(0)
+                increaseDifficulty()
             } else {
                 toast(getString(R.string.pokemon_answer_wrong, pokemon.name))
             }

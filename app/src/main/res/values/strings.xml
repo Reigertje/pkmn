@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Guess The Pokemon</string>
+    <string name="app_name">Who\'s that Pokémon?</string>
     <string name="title_activity_pokemon">PokemonActivity</string>
 
     <string name="get_pokemon_count_failure">Failed to get number of Pokémon from API</string>

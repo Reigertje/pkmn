@@ -17,6 +17,8 @@ import org.jetbrains.anko.sdk25.coroutines.onClick
 
 class GuessActivity : AppCompatActivity() {
 
+    private val INCREMENT = 15
+
     private val random = Random()
 
     private var currentMax:Int = 0
@@ -129,7 +131,7 @@ class GuessActivity : AppCompatActivity() {
         currentPokemon?.let { pokemon ->
             val answer:String = answerEditText.text?.toString()?.trim()?.toLowerCase()?:""
             if (answer.equals(pokemon.name.toLowerCase())) {
-                currentMax = Math.min(currentMax + 50, maxPokemonId)
+                currentMax = Math.min(currentMax + INCREMENT, maxPokemonId)
                 toast(R.string.pokemon_answer_corrent)
             } else {
                 toast(getString(R.string.pokemon_answer_wrong, pokemon.name))

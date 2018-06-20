@@ -121,7 +121,11 @@ class GuessActivity : AppCompatActivity() {
     private fun startPokemonGuess(pokemon: Pokemon) {
         currentPokemon = pokemon
         setAnswerMode()
-        Glide.with(this).load(pokemon.image).into(image)
+        try {
+            Glide.with(this).load(pokemon.image).into(image)
+        } catch (e:IllegalStateException) {
+            // TODO
+        }
     }
  
     private fun submitAnswer() {

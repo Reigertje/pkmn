@@ -79,7 +79,6 @@ class PokemonService(context: Context) {
                 }
             }
         } else {
-            System.out.println("FROM DATABASE :)")
             callback(fromDatabase, true)
         }
     }

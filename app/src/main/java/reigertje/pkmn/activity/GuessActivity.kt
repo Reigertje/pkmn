@@ -21,14 +21,10 @@ import kotlin.collections.ArrayList
 
 class GuessActivity : AppCompatActivity() {
 
-    private val INCREMENT = 15
-    private val START = 25
-
     private var currentPokemon:Pokemon? = null
 
     private val selector:PokemonIndexSelector = PokemonIndexSelector()
-
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_guess)

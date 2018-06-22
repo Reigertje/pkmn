@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/backgroundRed"
-    tools:context="reigertje.pkmn.GuessActivity">
+    tools:context="reigertje.pkmn.activity.GuessActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

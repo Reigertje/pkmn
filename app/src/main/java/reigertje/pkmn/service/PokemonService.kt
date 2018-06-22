@@ -6,6 +6,9 @@ import com.github.kittinunf.fuel.android.core.Json
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
+import org.jetbrains.anko.db.select
+import reigertje.pkmn.dao.PokemonDao
+import reigertje.pkmn.dao.database
 import reigertje.pkmn.entity.Pokemon
 
 /**
@@ -22,7 +25,8 @@ class PokemonService(context: Context) {
     private val COUNT_TIMESTAMP_KEY = "count_ts"
     private val ONE_DAY_MS = 24 * 60 * 1000;
 
-    val sharedPrefs:SharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_TAG, Context.MODE_PRIVATE)
+    val sharedPrefs = context.getSharedPreferences(SHARED_PREFERENCES_TAG, Context.MODE_PRIVATE)
+    val dao = PokemonDao(context)
 
     private fun getCachedCount():Int? {
         val count = sharedPrefs.getInt(COUNT_KEY, 0);
@@ -57,17 +61,26 @@ class PokemonService(context: Context) {
         }
     }
 
-    fun loadPokemon(index:Int, callback : (result:Pokemon, success:Boolean) -> Unit) {
-        // TODO write pokemon to database
-        POKEMON_ENDPOINT.replace("{0}", index.toString()).httpGet().response { request, response, result ->
-            result.success {
-                val responseJson = Json(String(response.data)).obj()
-                val spritesJson = responseJson.getJSONObject("sprites")
-                callback(Pokemon(responseJson.getInt("id"), responseJson.getString("name"), spritesJson.getString("front_default")), true)
+    fun loadPokemon(id:Int, callback : (result:Pokemon, success:Boolean) -> Unit) {
+
+        val fromDatabase = dao.queryPokemonById(id)
+
+        if (fromDatabase == null) {
+            POKEMON_ENDPOINT.replace("{0}", id.toString()).httpGet().response { request, response, result ->
+                result.success {
+                    val responseJson = Json(String(response.data)).obj()
+                    val spritesJson = responseJson.getJSONObject("sprites")
+                    val pokemon = Pokemon(responseJson.getInt("id"), responseJson.getString("name"), spritesJson.getString("front_default"))
+                    dao.insertPokemon(pokemon)
+                    callback(pokemon, true)
+                }
+                result.failure {
+                    callback(Pokemon(0, "", ""), false)
+                }
             }
-            result.failure {
-                callback(Pokemon(0, "", ""), false)
-            }
+        } else {
+            System.out.println("FROM DATABASE :)")
+            callback(fromDatabase, true)
         }
     }
 

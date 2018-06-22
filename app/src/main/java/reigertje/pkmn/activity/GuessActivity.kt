@@ -1,4 +1,4 @@
-package reigertje.pkmn
+package reigertje.pkmn.activity
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -14,6 +14,9 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import org.jetbrains.anko.image
 import org.jetbrains.anko.sdk25.coroutines.onClick
+import reigertje.pkmn.R
+import reigertje.pkmn.util.PokemonIndexSelector
+import java.lang.IllegalArgumentException
 import kotlin.collections.ArrayList
 
 class GuessActivity : AppCompatActivity() {
@@ -21,23 +24,21 @@ class GuessActivity : AppCompatActivity() {
     private val INCREMENT = 15
     private val START = 25
 
-    private var currentMax:Int = 0
-    private var maxPokemonId:Int = 0
     private var currentPokemon:Pokemon? = null
 
-    private val selectionList = ArrayList<Int>()
+    private val selector:PokemonIndexSelector = PokemonIndexSelector()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_guess)
-        maxPokemonId = intent.getIntExtra("MAX_POKEMON_ID", 0)
+        val pokemonCount = intent.getIntExtra("MAX_POKEMON_ID", 0)
 
         initializeEditorListener()
         initializeButtonListener()
 
-        if (maxPokemonId > 0) {
-            currentMax = START
-            selectionList.addAll(1..currentMax)
+        if (pokemonCount > 0) {
+            selector.initialize(pokemonCount)
             loadRandomPokemon()
         } else {
             toast(R.string.invalid_pokemon_count)
@@ -61,10 +62,9 @@ class GuessActivity : AppCompatActivity() {
     }
 
     private fun loadRandomPokemon() {
-        if (selectionList.isNotEmpty()) {
-            Collections.shuffle(selectionList)
+        if (selector.hasNext()) {
             setLoadingMode()
-            val pokemon_id = selectionList.get(0)
+            val pokemon_id = selector.select()
 
             PokemonService(this).loadPokemon(pokemon_id) { result, success ->
                 if (success) {
@@ -131,16 +131,8 @@ class GuessActivity : AppCompatActivity() {
         setAnswerMode()
         try {
             Glide.with(this).load(pokemon.image).into(image)
-        } catch (e:IllegalStateException) {
+        } catch (e:IllegalArgumentException) {
             // TODO handle this
-        }
-    }
-
-    private fun increaseDifficulty() {
-        val newCurrentMax = Math.min(currentMax + INCREMENT, maxPokemonId)
-        if (newCurrentMax > currentMax) {
-            selectionList.addAll(currentMax + 1..newCurrentMax)
-            currentMax = newCurrentMax
         }
     }
 
@@ -149,9 +141,8 @@ class GuessActivity : AppCompatActivity() {
             val answer:String = answerEditText.text?.toString()?.trim()?.toLowerCase()?:""
             if (answer.equals(pokemon.name.toLowerCase())) {
                 toast(R.string.pokemon_answer_corrent)
-                selectionList.removeAt(0)
-                increaseDifficulty()
             } else {
+                selector.returnSelected()
                 toast(getString(R.string.pokemon_answer_wrong, pokemon.name))
             }
             setNextMode()

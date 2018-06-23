@@ -10,42 +10,93 @@ import reigertje.pkmn.service.PokemonService
 import java.util.*
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.ColorMatrix
+import android.support.v4.app.Fragment
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.image
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import reigertje.pkmn.R
+import reigertje.pkmn.util.DataFragment
 import reigertje.pkmn.util.PokemonIndexSelector
 import java.lang.IllegalArgumentException
 import kotlin.collections.ArrayList
 
-class GuessActivity : AppCompatActivity() {
+class GuessActivity : AppCompatActivity(), DataFragment.Observer {
 
-    private var currentPokemon:Pokemon? = null
+    var dataFragment:GuessDataFragment? = null
 
-    private val selector:PokemonIndexSelector = PokemonIndexSelector()
-    
+    var pokemon:Pokemon? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_guess)
-        val pokemonCount = intent.getIntExtra("MAX_POKEMON_ID", 0)
+
+        dataFragment = supportFragmentManager.findFragmentByTag("datafragment") as GuessDataFragment?
+
+        if (dataFragment == null) {
+            dataFragment = GuessDataFragment()
+            dataFragment!!.arguments = bundleOf(POKEMON_COUNT to intent.getIntExtra(POKEMON_COUNT, 0))
+            supportFragmentManager
+                    .beginTransaction()
+                    .add(dataFragment, "datafragment")
+                    .commit()
+        }
 
         initializeEditorListener()
         initializeButtonListener()
+    }
 
-        if (pokemonCount > 0) {
-            selector.initialize(pokemonCount)
-            loadRandomPokemon()
+    override fun onStart() {
+        super.onStart()
+        dataFragment!!.addObserver(this)
+        onDataChanged()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        dataFragment!!.removeObserver(this)
+    }
+
+    override fun onDataChanged() {
+        dataFragment?.let { data ->
+            if (data.pokemon != pokemon) {
+                pokemon = data.pokemon
+                changePokemonImage()
+            }
+
+            if (data.pokemon == null) {
+                setLoadingMode()
+            } else {
+                if (data.answerSubmitted) {
+                    setNextMode()
+                } else {
+                    setAnswerMode()
+                }
+            }
+            score.text = getString(R.string.score, data.score)
+            streak.text = getString(R.string.streak, data.streak)
+            togo.text = getString(R.string.togo, data.togo)
+        }
+    }
+
+    private fun changePokemonImage() {
+        if (pokemon == null) {
+            image.setImageResource(0)
         } else {
-            toast(R.string.invalid_pokemon_count)
-            finish()
+            try {
+                Glide.with(this).load(pokemon!!.image).into(image)
+            } catch (e:IllegalArgumentException) {
+                // TODO handle this
+            }
         }
     }
 
     private fun initializeEditorListener() {
         answerEditText.setOnEditorActionListener { textView, action, keyEvent ->
             if (action == EditorInfo.IME_ACTION_DONE) {
-                submitAnswer()
+                val answer:String = answerEditText.text?.toString()?:""
+                dataFragment!!.submitAnswer(answer)
             }
             false
         }
@@ -53,26 +104,7 @@ class GuessActivity : AppCompatActivity() {
 
     private fun initializeButtonListener() {
         nextButton.onClick {
-            loadRandomPokemon()
-        }
-    }
-
-    private fun loadRandomPokemon() {
-        if (selector.hasNext()) {
-            setLoadingMode()
-            val pokemon_id = selector.select()
-
-            PokemonService(this).loadPokemon(pokemon_id) { result, success ->
-                if (success) {
-                    startPokemonGuess(result)
-                } else {
-                    toast(R.string.get_pokemon_failure)
-                    finish()
-                }
-            }
-        } else {
-            toast(R.string.caught_em_all)
-            finish()
+            dataFragment!!.next()
         }
     }
 
@@ -93,7 +125,7 @@ class GuessActivity : AppCompatActivity() {
         image.setColorFilter(0)
     }
 
-    private fun setLoadingMode() {
+    fun setLoadingMode() {
         image.image = null
         answerEditText.visibility = View.GONE
         answerEditText.isEnabled = false
@@ -102,7 +134,7 @@ class GuessActivity : AppCompatActivity() {
         progressBar.visibility = View.VISIBLE
     }
 
-    private fun setAnswerMode() {
+   fun setAnswerMode() {
         answerEditText.setText("")
         answerEditText.visibility = View.VISIBLE
         answerEditText.isEnabled = true
@@ -112,7 +144,7 @@ class GuessActivity : AppCompatActivity() {
         obfuscateImageView()
     }
 
-    private fun setNextMode() {
+    fun setNextMode() {
         revealImageView()
         answerEditText.visibility = View.GONE
         answerEditText.isEnabled = false
@@ -121,28 +153,4 @@ class GuessActivity : AppCompatActivity() {
         nextButton.isEnabled = true
     }
 
-
-    private fun startPokemonGuess(pokemon: Pokemon) {
-        currentPokemon = pokemon
-        setAnswerMode()
-        try {
-            Glide.with(this).load(pokemon.image).into(image)
-        } catch (e:IllegalArgumentException) {
-            // TODO handle this
-        }
-    }
-
-    private fun submitAnswer() {
-        currentPokemon?.let { pokemon ->
-            val answer:String = answerEditText.text?.toString()?.trim()?.toLowerCase()?:""
-            if (answer.equals(pokemon.name.toLowerCase())) {
-                toast(R.string.pokemon_answer_corrent)
-            } else {
-                selector.returnSelected()
-                toast(getString(R.string.pokemon_answer_wrong, pokemon.name))
-            }
-            setNextMode()
-        }
-    }
-    
 }

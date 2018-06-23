@@ -8,6 +8,40 @@
     android:background="@color/backgroundRed"
     tools:context="reigertje.pkmn.activity.GuessActivity">
 
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:padding="4dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_weight="1"
+            android:id="@+id/score"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            tools:text="Score: 999999999"/>
+
+        <TextView
+            android:layout_weight="0.5"
+            android:id="@+id/streak"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            tools:text="streak: 802"/>
+
+        <TextView
+            android:id="@+id/togo"
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            tools:text="to go: 802"/>
+
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

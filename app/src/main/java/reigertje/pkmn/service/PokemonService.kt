@@ -7,9 +7,13 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import org.jetbrains.anko.db.select
+import org.json.JSONArray
+import org.json.JSONObject
 import reigertje.pkmn.dao.PokemonDao
 import reigertje.pkmn.dao.database
 import reigertje.pkmn.entity.Pokemon
+import java.lang.IllegalArgumentException
+import java.util.*
 
 /**
  * Created by brian on 20-6-18.
@@ -68,11 +72,18 @@ class PokemonService(context: Context) {
         if (fromDatabase == null) {
             POKEMON_ENDPOINT.replace("{0}", id.toString()).httpGet().response { request, response, result ->
                 result.success {
-                    val responseJson = Json(String(response.data)).obj()
-                    val spritesJson = responseJson.getJSONObject("sprites")
-                    val pokemon = Pokemon(responseJson.getInt("id"), responseJson.getString("name"), spritesJson.getString("front_default"))
-                    dao.insertPokemon(pokemon)
-                    callback(pokemon, true)
+                    val pokemonJson = Json(String(response.data)).obj()
+                    val spritesJson = pokemonJson.getJSONObject("sprites")
+                    val speciesJson = pokemonJson.getJSONObject("species")
+                    // Unfortunately, an appropriately formatted name is not present in first response
+                    // Additional call to species url is necessary
+                    speciesJson.getString("url").httpGet().response { request, response, result ->
+                        val speciesJson = Json(String(response.data)).obj()
+
+                        val pokemon = Pokemon(id, findEnglishName(speciesJson), spritesJson.getString("front_default"))
+                        dao.insertPokemon(pokemon)
+                        callback(pokemon, true)
+                    }
                 }
                 result.failure {
                     callback(Pokemon(0, "", ""), false)
@@ -81,6 +92,19 @@ class PokemonService(context: Context) {
         } else {
             callback(fromDatabase, true)
         }
+    }
+
+
+    private fun findEnglishName(json:JSONObject):String {
+        val arr = json.getJSONArray("names")
+        for (i in 0 until arr.length()) {
+            val localName = arr.getJSONObject(i)
+            val language = localName.getJSONObject("language")
+            if (language.getString("name") == "en") {
+                return localName.getString("name")
+            }
+        }
+        throw IllegalStateException("No English name found for Pokémon")
     }
 
 }

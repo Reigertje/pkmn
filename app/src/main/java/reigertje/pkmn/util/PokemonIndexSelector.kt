@@ -42,6 +42,10 @@ class PokemonIndexSelector {
         return selection
     }
 
+    fun left():Int {
+        return selectionList.size
+    }
+
     fun returnSelected() {
         lastSelection.let { sel ->
             if (sel == null) {

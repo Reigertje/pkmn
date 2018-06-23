@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         startLoadingView()
 
         start_game_button.onClick {
-            startActivity<GuessActivity>("MAX_POKEMON_ID" to pokemonCount)
+            startActivity<GuessActivity>(POKEMON_COUNT to pokemonCount)
         }
 
         PokemonService(this).loadPokemonCount { result, success ->

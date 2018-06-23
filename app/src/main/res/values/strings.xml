@@ -16,4 +16,9 @@
     <string name="next">Next</string>
 
     <string name="caught_em_all">Congratulation! You caught \'em all!</string>
+
+    <string name="score">Score: %1$d</string>
+    <string name="streak">Streak: %1$d</string>
+    <string name="togo">To go: %1$d</string>
+
 </resources>
